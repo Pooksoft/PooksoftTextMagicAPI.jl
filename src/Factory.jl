@@ -2,6 +2,9 @@
 # ==================================================================================================== #
 
 # === PUBLIC METHODS THAT ARE EXPORTED =============================================================== #
+"""
+    build_user_model_object(configDictionary::Dict{String,Any})::PSResult
+"""
 function build_user_model_object(configDictionary::Dict{String,Any})::PSResult
 
     # initialize -

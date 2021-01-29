@@ -31,10 +31,32 @@ function _is_dir_path_legit(pathToDirectory::String)::PSResult
     # default: return nothing -
     return PSResult(nothing)
 end
+
+function _is_csv_file(pathToFile::String)::PSResult
+
+    # get the basename -
+    file_name_w_extension = basename(pathToFile)
+    if (occursin(".csv",file_name_w_extension) == false)
+        
+        # error message -
+        error_message = "Ooops! $(pathToFile) is not a comma seperated value file."
+        error_object = ArgumentError(error_message)
+
+        # return -
+        return PSResult{ArgumentError}(error_object)
+    end
+
+    # default: return nothing -
+    return PSResult(nothing)
+end
+
 # ==================================================================================================== #
 
 # === PUBLIC METHODS THAT ARE EXPORTED =============================================================== #
-function load_results_data_file(;pathToResultsFile::String)::PSResult
+"""
+    load_csv_data_file(;pathToDataFile::String)::PSResult
+"""
+function load_csv_data_file(;pathToDataFile::String)::PSResult
 
     # initalize -
     # ...
@@ -42,13 +64,19 @@ function load_results_data_file(;pathToResultsFile::String)::PSResult
     try 
 
         # check: is file legit?
-        file_check_result = _is_file_path_legit(pathToResultsFile)
+        file_check_result = _is_file_path_legit(pathToDataFile)
         if (isa(file_check_result.value, Exception) == true)
             throw(file_check_result.value)
         end
 
+        # check: is this a CSV file?
+        csv_file_check_result = _is_csv_file(pathToDataFile)
+        if (isa(csv_file_check_result.value, Exception) == true)
+            throw(csv_file_check_result.value)
+        end
+
         # ok, file is ok - load the CSV -
-        df = CSV.read(pathToResultsFile,DataFrame)
+        df = CSV.read(pathToDataFile,DataFrame)
 
         # return -
         return PSResult(df)
