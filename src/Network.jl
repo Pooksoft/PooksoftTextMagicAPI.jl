@@ -25,7 +25,7 @@ function _send_text_message(userModel::PSTextMagicAPIUserObject, phoneNumber::St
         # check -
         if (isnothing(logger) == false)
             with_logger(logger) do
-                @info("Sent $(message) to $(phoneNumber). Got back: $(response_dictionary)")
+                @info("Sent $(message) to $(phoneNumber).\n Got back: $(response_dictionary)")
             end
         end
 
@@ -118,6 +118,12 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
                 individual_dictionary = send_message_result.value
                 push!(response_dictionary_array, individual_dictionary)
 
+                if (isnothing(logger) == false)
+                    with_logger(logger) do
+                        @info("Rcvd $(individual_dictionary)")
+                    end
+                end
+
                 # store: store the message, so we don't send duplicates -
                 push!(has_already_been_sent_set, message_text_string)
 
@@ -125,7 +131,7 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
                 
                 # ok: so if we get here, we tried to send a message that we already sent. 
                 # log the weirdness (if we have a logger) and move on ...
-                if (isnothing(logger) = false)
+                if (isnothing(logger) == false)
                     
                     # loag this weirdness ....
                     with_logger(logger) do
