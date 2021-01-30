@@ -31,6 +31,35 @@ end
 # ==================================================================================================== #
 
 # === PUBLIC METHODS THAT ARE EXPORTED =============================================================== #
+function send_text_message(userModel::PSTextMagicAPIUserObject, phoneNumberArray::Array{String,1},
+    textMessageString::String; logger::Union{Nothing,SimpleLogger} = nothing)::PSResult
+
+    # initialize -
+    flat_telephone_number_list = ""
+
+    try 
+
+        # we need to convert phoneNumberArray into a flat comma separated string -
+        number_of_phone_numbers = length(phoneNumberArray)
+        for (index,telephone_number) in enumerate(phoneNumberArray)
+        
+            flat_telephone_number_list*=telephone_number
+            if (index<number_of_phone_numbers)
+                flat_telephone_number_list*=","
+            end
+        end
+
+        # make the call -
+        message_send_result = _send_text_message(userModel,flat_telephone_number_list,textMessageString)
+        if (isa(message_send_result.value,Exception) == true)
+            throw(message_send_result.value)
+        end
+        return PSResult(message_send_result.value)
+    catch error
+        return PSResult(erorr)
+    end
+end
+
 """
     send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataFrame, 
         messageTextCallBackFunction::Function, 
