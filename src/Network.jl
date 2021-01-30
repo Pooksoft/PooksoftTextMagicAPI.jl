@@ -142,7 +142,7 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
         end # end for
 
         # return -
-        return PSResult(response_dictionary)
+        return PSResult(response_dictionary_array)
     catch error
         return PSResult(error)
     end
