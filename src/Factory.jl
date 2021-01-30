@@ -12,7 +12,7 @@ function build_user_model_object(configDictionary::Dict{String,Any})::PSResult
 
     try 
 
-        loginCredentiallDictionary = configDictionary["API"]
+        loginCredentiallDictionary = configDictionary["api"]
 
         # check for some keys ...
         # username -
