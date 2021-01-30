@@ -74,7 +74,7 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
 
     # initialize -
     (number_of_rows, number_of_cols) = size(dataTable)
-    response_dictionary = Dict{String, Any}()   # holds the reponses key'd phone number: This will miss families ...
+    response_dictionary_array = Array{Dict{String, Any},1}()   # holds the reponses key'd phone number: This will miss families ...
     has_already_been_sent_set = Set{String}()   # set which hold the text of messages that have already been sent. we check to avoind duplicates
 
     try 
@@ -102,11 +102,10 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
 
                 # store: store the response from TextMagic for logging/reporting
                 individual_dictionary = send_message_result.value
-                response_dictionary[telephone_number_string] = individual_dictionary
+                push!(response_dictionary_array,individual_dictionary)
 
                 # store: store the message, so we don't send duplicates -
                 push!(has_already_been_sent_set, message_text_string)
-
             else
                 
                 # ok: so if we get here, we tried to send a message that we already sent. 
