@@ -31,6 +31,10 @@ end
 # ==================================================================================================== #
 
 # === PUBLIC METHODS THAT ARE EXPORTED =============================================================== #
+"""
+    send_text_message(userModel::PSTextMagicAPIUserObject, phoneNumberArray::Array{String,1},
+        textMessageString::String; logger::Union{Nothing,SimpleLogger} = nothing)::PSResult
+"""
 function send_text_message(userModel::PSTextMagicAPIUserObject, phoneNumberArray::Array{String,1},
     textMessageString::String; logger::Union{Nothing,SimpleLogger} = nothing)::PSResult
 
