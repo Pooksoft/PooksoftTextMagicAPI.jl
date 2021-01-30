@@ -87,6 +87,33 @@ function load_csv_data_file(;pathToDataFile::String)::PSResult
 end
 
 
+function unregister_file_store_watcher(; pathToInputDirectory::String)::PSResult
+
+    # initialize -
+    # ...
+
+    try
+
+        # check: is this a legit directory?
+        directory_check_result = _is_dir_path_legit(pathToInputDirectory)
+        if (isa(directory_check_result.value, Exception) == true)
+            throw(directory_check_result.value)
+        end
+
+        # ok: so we have a legit directory, let's watch for file updates.
+        unwatch_event_pair = FileWatching.watch_folder(pathToInputDirectory)
+
+        # return -
+        return PSResult(unwatch_event_pair)
+    catch error
+        return PSResult(error)
+    end
+end
+
+
+"""
+    register_file_store_watcher(; pathToInputDirectory::String)::PSResult
+"""
 function register_file_store_watcher(; pathToInputDirectory::String)::PSResult
 
     # initialize -
@@ -122,6 +149,8 @@ function load_config_file(;pathToConfigFile::String = joinpath(_PATH_TO_CONFIG,"
         if (isa(file_check_result.value, Exception) == true)
             throw(file_check_result.value)
         end
+
+        # TODO: check is this a TOML file?
 
         # load the file -
         config_dictionary = TOML.parsefile(pathToConfigFile)

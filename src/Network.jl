@@ -37,35 +37,56 @@ end
         telephoneNumberCallBackFunction::Function)::PSResult
 """
 function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataFrame, 
-    messageTextCallBackFunction::Function, 
-    telephoneNumberCallBackFunction::Function)::PSResult
+    messageTextCallBackFunction::Function; logger::Union{Nothing,SimpleLogger} = nothing)::PSResult
 
     # initialize -
     (number_of_rows, number_of_cols) = size(dataTable)
-    response_dictionary = Dict{String, Any}()
+    response_dictionary = Dict{String, Any}()   # holds the reponses key'd phone number: This will miss families ...
+    has_already_been_sent_set = Set{String}()   # set which hold the text of messages that have already been sent. we check to avoind duplicates
 
     try 
 
-        # main loop: send messages -
+        # main loop: send messages - loop through each row in the data fram, formulate the message, grab the phone number
+        # and then call the helper send message function 
         for row_index = 1:number_of_rows
 
             # get a row of data from the dataTable -
             data_row = dataTable[row_index, :]
 
             # call the message callback function to formulate the message text -
-            message_text_string = messageTextCallBackFunction(data_row)
+            message_callback_function_tuple = messageTextCallBackFunction(data_row)
+            message_text_string = message_callback_function_tuple.message_text_string
+            telephone_number_string = message_callback_function_tuple.telephone_number_string
 
-            # call the telephone call function -
-            telephone_number_string = telephoneNumberCallBackFunction(data_row)
+            # check: have we sent this message already?
+            if (in(message_text_string, has_already_been_sent_set) == false)
+            
+                # send the text - we call the helper method which does the HTTP call to TextMagic
+                send_message_result = _send_text_message(userModel, telephone_number_string, message_text_string)
+                if (isa(send_message_result.value,Exception) == true)
+                    throw(send_message_result.value)
+                end
 
-            # send the text - we call the helper method
-            send_message_result = _send_text_message(userModel, telephone_number_string, message_text_string)
-            if (isa(send_message_result.value,Exception) == true)
-                throw(send_message_result.value)
-            end
-            individual_dictionary = send_message_result.value
-            response_dictionary[telephone_number_string] = individual_dictionary
-        end
+                # store: store the response from TextMagic for logging/reporting
+                individual_dictionary = send_message_result.value
+                response_dictionary[telephone_number_string] = individual_dictionary
+
+                # store: store the message, so we don't send duplicates -
+                push!(has_already_been_sent_set, message_text_string)
+
+            else
+                
+                # ok: so if we get here, we tried to send a message that we already sent. 
+                # log the weirdness (if we have a logger) and move on ...
+                if (isnothing(logger) = false)
+                    
+                    # loag this weirdness ....
+                    with_logger(logger) do
+                        @warn("Duplicate message warning: ``message_text``=$(message_text_string)?")
+                    end
+                end # end if logger = nothing
+            end # end in set check
+        end # end for
 
         # return -
         return PSResult(response_dictionary)
