@@ -128,10 +128,10 @@ function register_file_store_watcher(; pathToInputDirectory::String)::PSResult
         end
 
         # ok: so we have a legit directory, let's watch for file updates.
-        watch_event_pair = FileWatching.watch_folder(pathToInputDirectory)
+        watch_event_pair = @sync FileWatching.watch_folder(pathToInputDirectory)
 
         # ok, so if we get here - then we need to unregister ...
-        FileWatching.unwatch_folder(pathToInputDirectory)
+        @sync FileWatching.unwatch_folder(pathToInputDirectory)
 
         # return -
         return PSResult(watch_event_pair)
