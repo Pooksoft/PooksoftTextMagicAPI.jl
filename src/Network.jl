@@ -1,6 +1,6 @@
 # === PRIVATE METHODS THAT ARE NOT EXPORTED ========================================================== #
 function _send_text_message(userModel::PSTextMagicAPIUserObject, phoneNumber::String,
-    message::String)::PSResult
+    message::String; logger::Union{Nothing,SimpleLogger} = nothing)::PSResult
 
     # initialize -
     message_body_dictionary = Dict{String,Any}()
@@ -21,6 +21,13 @@ function _send_text_message(userModel::PSTextMagicAPIUserObject, phoneNumber::St
 
         # we are going to return the response dictionary to the user -
         response_dictionary = JSON.parse(String(raw_response.body))
+
+        # check -
+        if (isnothing(simpleLogger) == false)
+            with_logger(simpleLogger) do
+                @info("Sent $(message) to $(phoneNumber). Got back: $(response_dictionary)")
+            end
+        end
 
         # return -
         return PSResult(response_dictionary)
@@ -54,7 +61,8 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, phoneNumberArray
         end
 
         # make the call -
-        message_send_result = _send_text_message(userModel,flat_telephone_number_list,textMessageString)
+        message_send_result = _send_text_message(userModel,flat_telephone_number_list,textMessageString;
+            logger=logger)
         if (isa(message_send_result.value,Exception) == true)
             throw(message_send_result.value)
         end
@@ -95,17 +103,23 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
             if (in(message_text_string, has_already_been_sent_set) == false)
             
                 # send the text - we call the helper method which does the HTTP call to TextMagic
-                send_message_result = _send_text_message(userModel, telephone_number_string, message_text_string)
+                send_message_result = _send_text_message(userModel, telephone_number_string, message_text_string; logger=logger)
                 if (isa(send_message_result.value,Exception) == true)
+                    if (isnothing(logger) = false)
+                        with_logger(logger) do
+                            @error("Message send failed: $(send_message_result.value)")
+                        end
+                    end
                     throw(send_message_result.value)
                 end
 
                 # store: store the response from TextMagic for logging/reporting
                 individual_dictionary = send_message_result.value
-                push!(response_dictionary_array,individual_dictionary)
+                push!(response_dictionary_array, individual_dictionary)
 
                 # store: store the message, so we don't send duplicates -
                 push!(has_already_been_sent_set, message_text_string)
+
             else
                 
                 # ok: so if we get here, we tried to send a message that we already sent. 
