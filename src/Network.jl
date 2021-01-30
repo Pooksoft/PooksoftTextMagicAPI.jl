@@ -23,8 +23,8 @@ function _send_text_message(userModel::PSTextMagicAPIUserObject, phoneNumber::St
         response_dictionary = JSON.parse(String(raw_response.body))
 
         # check -
-        if (isnothing(simpleLogger) == false)
-            with_logger(simpleLogger) do
+        if (isnothing(logger) == false)
+            with_logger(logger) do
                 @info("Sent $(message) to $(phoneNumber). Got back: $(response_dictionary)")
             end
         end
