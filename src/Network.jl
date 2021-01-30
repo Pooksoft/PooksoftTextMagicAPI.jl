@@ -105,7 +105,8 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
                 # send the text - we call the helper method which does the HTTP call to TextMagic
                 send_message_result = _send_text_message(userModel, telephone_number_string, message_text_string; logger=logger)
                 if (isa(send_message_result.value,Exception) == true)
-                    if (isnothing(logger) = false)
+                    
+                    if (isnothing(logger) == false)
                         with_logger(logger) do
                             @error("Message send failed: $(send_message_result.value)")
                         end
