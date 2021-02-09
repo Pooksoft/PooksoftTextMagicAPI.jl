@@ -99,8 +99,11 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
             message_text_string = message_callback_function_tuple.message_text_string
             telephone_number_string = message_callback_function_tuple.telephone_number_string
 
+            # create a test string to check for duplicates -
+            duplicate_test_string = message_text_string*telephone_number_string
+
             # check: have we sent this message already?
-            if (in(message_text_string, has_already_been_sent_set) == false)
+            if (in(duplicate_test_string, has_already_been_sent_set) == false)
             
                 # send the text - we call the helper method which does the HTTP call to TextMagic
                 send_message_result = _send_text_message(userModel, telephone_number_string, message_text_string; logger=logger)
@@ -125,7 +128,7 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
                 end
 
                 # store: store the message, so we don't send duplicates -
-                push!(has_already_been_sent_set, message_text_string)
+                push!(has_already_been_sent_set, duplicate_test_string)
 
             else
                 
