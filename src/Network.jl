@@ -109,22 +109,25 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
                 send_message_result = _send_text_message(userModel, telephone_number_string, message_text_string; logger=logger)
                 if (isa(send_message_result.value,Exception) == true)
                     
+                    # log the error, but do NOT stop - go onto the next record ...
                     if (isnothing(logger) == false)
                         with_logger(logger) do
                             @error("Message send failed: $(send_message_result.value)")
                         end
                     end
-                    throw(send_message_result.value)
-                end
+                else
+                    
+                    # if we get here, then the send was good -
+                    # store: store the response from TextMagic for logging/reporting
+                    individual_dictionary = send_message_result.value
+                    push!(response_dictionary_array, individual_dictionary)
 
-                # store: store the response from TextMagic for logging/reporting
-                individual_dictionary = send_message_result.value
-                push!(response_dictionary_array, individual_dictionary)
-
-                if (isnothing(logger) == false)
-                    with_logger(logger) do
-                        @info("Rcvd $(individual_dictionary)")
-                    end
+                    # log -
+                    if (isnothing(logger) == false)
+                        with_logger(logger) do
+                            @info("Message send success: $(individual_dictionary)")
+                        end
+                    end                    
                 end
 
                 # store: store the message, so we don't send duplicates -
@@ -147,6 +150,9 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
         # return -
         return PSResult(response_dictionary_array)
     catch error
+
+        # unless there is some extreme malfunction, we never get here. If we encounter an error, we 
+        # log it and keep moving -
         return PSResult(error)
     end
 end
