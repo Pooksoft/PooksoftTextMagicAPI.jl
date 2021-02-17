@@ -107,7 +107,7 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
             
                 # send the text - we call the helper method which does the HTTP call to TextMagic
                 send_message_result = _send_text_message(userModel, telephone_number_string, message_text_string; logger=logger)
-                if (isa(send_message_result.value,Exception) == true)
+                if (isa(send_message_result.value, Exception) == true)
                     
                     # log the error, but do NOT stop - go onto the next record ...
                     if (isnothing(logger) == false)
@@ -115,11 +115,20 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
                             @error("Message send failed: $(send_message_result.value)")
                         end
                     end
+
+                    # ok, lets grab this number, and mark it as failed -
+                    failed_dictionary = Dict{String,Any}()
+                    failed_dictionary["sent_message_correctly"] = false
+                    failed_dictionary["message_index"] = row_index
+                    push!(response_dictionary_array, failed_dictionary)
+
                 else
                     
                     # if we get here, then the send was good -
                     # store: store the response from TextMagic for logging/reporting
                     individual_dictionary = send_message_result.value
+                    individual_dictionary["sent_message_correctly"] = true
+                    individual_dictionary["message_index"] = row_index
                     push!(response_dictionary_array, individual_dictionary)
 
                     # log -
