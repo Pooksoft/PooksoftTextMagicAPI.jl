@@ -109,18 +109,19 @@ function send_text_message(userModel::PSTextMagicAPIUserObject, dataTable::DataF
                 send_message_result = _send_text_message(userModel, telephone_number_string, message_text_string; logger=logger)
                 if (isa(send_message_result.value, Exception) == true)
                     
-                    # log the error, but do NOT stop - go onto the next record ...
-                    if (isnothing(logger) == false)
-                        with_logger(logger) do
-                            @error("Message send failed: $(send_message_result.value)")
-                        end
-                    end
-
                     # ok, lets grab this number, and mark it as failed -
                     failed_dictionary = Dict{String,Any}()
                     failed_dictionary["sent_message_correctly"] = false
                     failed_dictionary["message_index"] = row_index
+                    failed_dictionary["error_message"] = "$(send_message_result.value)"
                     push!(response_dictionary_array, failed_dictionary)
+
+                    # log the error, but do NOT stop - go onto the next record ...
+                    if (isnothing(logger) == false)
+                        with_logger(logger) do
+                            @error("Message send failed: $(failed_dictionary)")
+                        end
+                    end
 
                 else
                     
